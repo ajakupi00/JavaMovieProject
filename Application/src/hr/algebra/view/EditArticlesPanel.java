@@ -9,6 +9,7 @@ import hr.algebra.Dashboard;
 import hr.algebra.dal.Repository;
 import hr.algebra.dal.RepositoryFactory;
 import hr.algebra.models.Artist;
+import hr.algebra.models.Genre;
 import hr.algebra.view.model.MovieTableModel;
 import hr.algebra.utils.FileUtils;
 import hr.algebra.utils.IconUtils;
@@ -384,7 +385,14 @@ public class EditArticlesPanel extends javax.swing.JPanel {
                         localPicturePath,
                         tfBeginDate.getText()
                 );
-                repository.createMovie(movie);
+                List<Artist> artistsForSelectedMovie = repository.getArtistsForMovie(selectedMovie.getId());
+                List<Genre> genresForSelectedMovie = repository.getGenresForMovie(selectedMovie.getId());
+                
+                int newMovieId = repository.createMovie(movie);
+                Movie newMovie = new Movie();
+                newMovie.setId(newMovieId);
+                addArtistForNewMovie(newMovie, artistsForSelectedMovie);
+                addGenreForNewMovie(newMovie, genresForSelectedMovie);
                 movieTableModel.setMovies(repository.getMovies());
 
                 clearForm();
@@ -506,16 +514,22 @@ public class EditArticlesPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_tbMoviesKeyReleased
 
     private void btnActorsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnActorsActionPerformed
-        Role actor = new Role("Glumac");
-        List<Artist> artists = (List<Artist>) selectedMovie.getArtists();
-        List<Artist> actors = new ArrayList<>();
-        for (Artist a : artists) {
-            if (a.getRole().equals(actor)) {
-                actors.add(a);
+        Role actor;
+        try {
+            actor = repository.getRole(1).get();
+            List<Artist> artists = (List<Artist>) selectedMovie.getArtists();
+            List<Artist> actors = new ArrayList<>();
+            for (Artist a : artists) {
+                if (a.getRole().equals(actor)) {
+                    actors.add(a);
+                }
             }
+            ArtistDialog ad = new ArtistDialog(null, false, actors, actor, selectedMovie);
+            ad.setVisible(true);
+        } catch (Exception ex) {
+            Logger.getLogger(EditArticlesPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
-        ArtistDialog ad = new ArtistDialog(null, false, actors, actor, selectedMovie);
-        ad.setVisible(true);
+
 
     }//GEN-LAST:event_btnActorsActionPerformed
 
@@ -528,16 +542,20 @@ public class EditArticlesPanel extends javax.swing.JPanel {
     }//GEN-LAST:event_btnRefreshActionPerformed
 
     private void btnDirectorsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDirectorsActionPerformed
-        Role director = new Role("Redatelj");
-        List<Artist> artists = (List<Artist>) selectedMovie.getArtists();
-        List<Artist> directors = new ArrayList<>();
-        for (Artist a : artists) {
-            if (a.getRole().equals(director)) {
-                directors.add(a);
+        try {
+            Role director = repository.getRole(2).get();
+            List<Artist> artists = (List<Artist>) selectedMovie.getArtists();
+            List<Artist> directors = new ArrayList<>();
+            for (Artist a : artists) {
+                if (a.getRole().equals(director)) {
+                    directors.add(a);
+                }
             }
+            ArtistDialog ad = new ArtistDialog(null, false, directors, director, selectedMovie);
+            ad.setVisible(true);
+        } catch (Exception ex) {
+            Logger.getLogger(EditArticlesPanel.class.getName()).log(Level.SEVERE, null, ex);
         }
-        ArtistDialog ad = new ArtistDialog(null, false, directors, director, selectedMovie);
-        ad.setVisible(true);
     }//GEN-LAST:event_btnDirectorsActionPerformed
 
     private void btnGenresActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGenresActionPerformed
@@ -663,13 +681,25 @@ public class EditArticlesPanel extends javax.swing.JPanel {
                 try {
                     Integer.parseInt(validationFields.get(i).getText().trim());
                 } catch (Exception e) {
-                     ok = false;
+                    ok = false;
                     errorLabels.get(i).setText("X");
                 }
             }
         }
 
         return ok;
+    }
+
+    private void addArtistForNewMovie(Movie movie, List<Artist> artistsForSelectedMovie) throws Exception{
+        for (Artist artist : artistsForSelectedMovie) {
+            repository.addArtistForMovie(artist, movie);
+        }
+    }
+
+    private void addGenreForNewMovie(Movie movie, List<Genre> genresForSelectedMovie) throws Exception{
+         for (Genre genre : genresForSelectedMovie) {
+            repository.addGenreForMovie(genre, movie);
+        }
     }
 
 }

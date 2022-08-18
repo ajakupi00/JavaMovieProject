@@ -68,18 +68,17 @@ public class ArtistDialog extends javax.swing.JDialog {
         this.selectedMovie = movie;
         try {
             repo = RepositoryFactory.getRepository();
-            List<Artist> allartists = repo.getArtists();
+            List<Artist> allartists = manageArtists(repo.getArtists());
             artists.forEach(allartists::remove);
             allArtists = allartists;
             allartists.forEach(allArtistsModel::addElement);
+            initComponents();
+            initDragNDrop();
+            initArtists();
+            initLabels();
         } catch (Exception ex) {
             Logger.getLogger(ArtistDialog.class.getName()).log(Level.SEVERE, null, ex);
         }
-
-        initComponents();
-        initDragNDrop();
-        initArtists();
-        initLabels();
 
     }
 
@@ -162,13 +161,14 @@ public class ArtistDialog extends javax.swing.JDialog {
         artists.forEach(a -> {
             try {
                 List<Artist> tmp = repo.getArtistsForMovie(selectedMovie.getId());
-                if(!tmp.contains(a))
+                if (!tmp.contains(a)) {
                     repo.addArtistForMovie(a, selectedMovie);
+                }
             } catch (Exception ex) {
                 Logger.getLogger(ArtistDialog.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
-        MessageUtils.showInformationMessage("SUCCESS","Movie succesfully updated!");
+        MessageUtils.showInformationMessage("SUCCESS", "Movie succesfully updated!");
         this.show(false);
     }//GEN-LAST:event_btnSaveActionPerformed
 
@@ -226,7 +226,7 @@ public class ArtistDialog extends javax.swing.JDialog {
     // End of variables declaration//GEN-END:variables
 
     private void initLabels() {
-        if (role.getName() == "Glumac") {
+        if ("Glumac".equals(role.getName().trim())) {
             lblCurrentArtists.setText("Actors in this movie");
             lblAllArtist.setText("All actors");
             this.setTitle("Edit actors");
@@ -264,6 +264,17 @@ public class ArtistDialog extends javax.swing.JDialog {
         lsAllArtist.setDragEnabled(true);
         lsAllArtist.setTransferHandler(new ExportTransferHandler());
 
+    }
+
+    private List<Artist> manageArtists(List<Artist> allartists) {
+        List<Artist> temp = new ArrayList<>();
+        for (Artist art : allartists) {
+            if (art.getRole().getName().trim().equals(role.getName().trim())) {
+                temp.add(art);
+            }
+        }
+
+        return temp;
     }
 
     private class ImportTransferHandler extends TransferHandler {
