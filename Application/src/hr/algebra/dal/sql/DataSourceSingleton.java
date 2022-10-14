@@ -10,7 +10,7 @@ import javax.sql.DataSource;
 
 /**
  *
- * @author dbele
+ * @author ajakupi
  */
 public final class DataSourceSingleton {
     
